@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
         Provide a method by which Microsoft Store apps can be loaded recursively without the use of JSON, XML, or any other type of configuration file.
 
@@ -28,20 +28,21 @@
 
 param(
 
-$HSAStore,
-$Provision,
-$LogFile="AddHSAStore" + (Get-Date -Format yyyy-MM-dd_HHmmss) + ".log"
+    $HSAStore,
+    $Provision,
+    $LogFile = "AddHSAStore" + (Get-Date -Format yyyy-MM-dd_HHmmss) + ".log"
 
 )
 
 $PackageDir = Get-ChildItem -Path $HSAStore -Directory -Recurse
-
+Clear
 Start-Transcript -Path $LogFile
-ForEach($Package in $PackageDir) {
-    If((Get-ChildItem -Path $Package.FullName -File).count -lt 1) {
+ForEach ($Package in $PackageDir) {
+    If ((Get-ChildItem -Path $Package.FullName -File).count -lt 1) {
         Write-Host "Warning: $($Package.Name) will be ignored because it contains no files. Subdirectories will be searched..." -ForegroundColor Yellow 
         Continue
-    } else {
+    }
+    else {
     
         Write-Host "Information: $($Package.FullName)" -ForegroundColor Green 
 
@@ -51,24 +52,35 @@ ForEach($Package in $PackageDir) {
     
         Write-Host "Package Content:"
         Write-Host "- HSA: $($HSA.Name)"
-        Write-Host "- Dependencies: $($Dependencies.Name)"
+        #Write-Host "- Dependencies: $($Dependencies.Name)"
+        Write-Host "- Dependencies: ";
+            $i = 1 
+            ForEach($Dependency in $Dependencies) {
+                Write-Host "   $i - $($Dependency.Name)"
+                $i = $i + 1
+            }
         Write-Host "- License: $($License.Name)"
         Write-Host "`n"
     
-        If($Provision -eq "True") {
-            If($License) {
-                Add-AppxProvisionedPackage -Online -PackagePath $HSA.FullName -LicensePath $License.FullName -DependencyPackagePath $Dependencies.FullName -LogLevel Errors
-            } else {
-                Add-AppxProvisionedPackage -Online -PackagePath $HSA.FullName -SkipLicense -DependencyPackagePath $Dependencies.FullName -LogLevel Errors
+        If ($Provision -eq "True") {
+            If ($License) {
+                
+                Add-AppxProvisionedPackage -Online -PackagePath $HSA.FullName -LicensePath $License.FullName -DependencyPackagePath $Dependencies.FullName -Regions All
+            }
+            else {
+                
+                Add-AppxProvisionedPackage -Online -PackagePath $HSA.FullName -SkipLicense -DependencyPackagePath $Dependencies.FullName -Regions All
             }
          
-        } else {
-                If($Dependencies) {
-                    Add-AppxPackage -Path $HSA.FullName -DependencyPath $Dependencies.FullName
-                } else {
-                    Add-AppxPackage -Path $HSA.FullName
-                }
+        }
+        else {
+            If ($Dependencies) {
+                Add-AppxPackage -Path $HSA.FullName -DependencyPath $Dependencies.FullName 
+            }
+            else {
+                Add-AppxPackage -Path $HSA.FullName
+            }
         }
     }
-   
 }
+Stop-Transcript  
