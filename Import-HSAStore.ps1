@@ -52,7 +52,6 @@ ForEach ($Package in $PackageDir) {
     
         Write-Host "Package Content:"
         Write-Host "- HSA: $($HSA.Name)"
-        #Write-Host "- Dependencies: $($Dependencies.Name)"
         Write-Host "- Dependencies: ";
             $i = 1 
             ForEach($Dependency in $Dependencies) {
